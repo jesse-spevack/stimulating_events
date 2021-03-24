@@ -238,10 +238,8 @@ This makes a Stimulus controller re-useable as teh styles we apply can be dynami
   data-controller="dropdown"
   data-dropdown-text-white-class="text-white"
   data-dropdown-text-pink-class="text-pink-600"
-  data-dropdown-tect-gray-class="text-gray-900"
   data-dropdown-background-pink-class="bg-pink-600"
   data-dropdown-semibold-class="font-semibold"
-  data-dropdown-normal-class="font-normal"
   data-dropdown-hidden-class="hidden"
   class="mt-1 relative"
 >
@@ -254,10 +252,8 @@ And we also need to add each of these classes to our controller's `static classe
 static classes = [
   "textWhite",
   "textPink",
-  "textGray",
   "backgroundPink",
   "semibold",
-  "normal",
   "hidden"
 ]
 ```
@@ -274,7 +270,7 @@ We have to define our `highlightListItem` function, so we can add some console l
 ```javascript
 // app/javascript/controllers/dropdown_controller.js
 highlightListItem(event) {
-  console.log("Mouseenter: ", event.target.innerText)
+  console.log("Mouse enter: ", event.target.innerText)
 }
 ```
 Since we see this message as we cursor over our list of speakers, lets now use javascript to apply our desired style. We want the list item's background to turn pink, the font color to turn white, and the text to turn bold. We can add:
@@ -335,7 +331,9 @@ To do this we need an easy way to get to the text inside our button. For that, S
 
 We'll add a `data-<controller>-target="name of the target"` in our html.
 ```html
-<span data-dropdown-target="speaker">...</span>
+<span data-dropdown-target="speaker">
+  Select speaker
+</span>
 ```
 
 And then in our controller we can add the `speaker` target to our `static targets` array.
@@ -455,7 +453,7 @@ selectItem(event) {
   const selected = event.target.innerText.trim()
   this.selectTarget.textContent = selected
   for(const check of this.checkTargets) {
-    if(check.previousElementsSibling.innerText.trim() === selected) {
+    if(check.previousElementSibling.innerText.trim() === selected) {
       check.classList.remove(this.hiddenClass)
     }
   }
@@ -473,7 +471,7 @@ highlightListItem(event) {
   span.classList.add(this.textWhiteClass, this.semiboldClass)
 
   if (!check.classList.contains(this.hiddenClass)) {
-    check.replace(this.textPinkClass, this.textWhiteClass)
+    check.classList.replace(this.textPinkClass, this.textWhiteClass)
   }
 }
 ```
@@ -490,7 +488,7 @@ unhighlightListItem(event) {
   span.classList.remove(this.textWhiteClass, this.semiboldClass)
 
   if (!check.classList.contains(this.hiddenClass)) {
-    check.replace(this.textWhiteClass, this.textPinkClass)
+    check.classList.replace(this.textWhiteClass, this.textPinkClass)
   }
 }
 ```
