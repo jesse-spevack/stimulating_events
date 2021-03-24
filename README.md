@@ -616,7 +616,7 @@ connect() {
 And now our select function becomes a little cleaner. Instead of messing with the list item text, we'll just set the `isSelected` state to be true.
 ```javascript
 select() {
-  this.selectedValue = true
+  this.isSelectedValue = true
 }
 ```
 
@@ -626,8 +626,6 @@ isSelectedValueChanged() {
   console.log("isSelected value changed to: ", this.isSelectedValue)
 }
 ```
-
-And we can remove the console.lgo from the `connect` to avoid confusion.
 
 When a list item is selected, we want to show the check mark, so we'll remove the hidden class.
 ```javascript
@@ -682,7 +680,7 @@ At this point our list items more or less govern themselves. They are much more 
 
 Now all that is left to do is clean up our drop down controller.
 
-First we need to remove the functions we no longer need. `connect`, `selectItem`, `setCheck`, `hideCheck`, `highlightListItem` and `unhighlightListItem`. These are all either no longer needed or handled by our list item controller.
+First we need to remove the functions we no longer need. `selectItem`, `setCheck`, `hideCheck`, `highlightListItem` and `unhighlightListItem`. These are all either no longer needed or handled by our list item controller.
 
 Now we'll want to add a new function to set the selected value. We can add a new data action to our `div` that will listen for any `listItemSelected` event.
 ```html
@@ -697,6 +695,13 @@ setSelected(event) {
   if (event.detail.value) {
     this.speakerTarget.textContent = event.detail.value
   }
+}
+```
+
+And then in the `connect` function we'll want to make sure we are still toggling the list off when the page loads.
+```javascript
+connect() {
+  this.toggleList()
 }
 ```
 
