@@ -106,35 +106,34 @@ module.exports = {
 ```
 Tailwind should be setup on your new rails application.
 
+## Load the application
+
+##### Start Rails Server
+```bash
+rails server
+```
+##### Start webpack dev server
+This will enable hot reloads
+```bash
+bin/webpack-dev-server
+```
+
 ## Getting Started
 We are starting with a brand new rails application that I've added [Tailwind css](https://tailwindcss.com/docs) to. We'd like to use [Stimulus](https://stimulus.hotwire.dev/reference/controllers) to add a really nice professional, modern sheen to a simple dropdown menu.
 
-Our goal here is to first show how easy it is to use Stimulus to add modern looking interactions to our html in Rails. After we get our dropdown working, I'll point out a way to improve our initial design and go on to implement this refactor. Let's see if you can anticipate that improvement!
+Our goal here is to first show how easy it is to use Stimulus to add modern looking interactions to our html in Rails. We'll introduce the core concepts of the framework, the controller, lifecycle callbacks, actions, targets, values, and css classes. After we get our dropdown working, we'll refactor to use some more advanced javascript to better encapsulate the responsibilities of our code.
 
-I like to set up my terminal with three panes, one for my commands, one to run rails server, and one to run the webpack dev server.
-
+The first thing we are going to do is generate a new demo controller with a dropdown method.
 ##### Generate a new controller
 ```bash
 rails generate controller Demo dropdown
 ```
 
-##### Add some data
-We are going to be building a dropdown menu where a user can choose a keynote speaker. We'll add some data to our dropdown method in our controller. Typically in a real application this might be accomplished via database query or some other service request.
-```ruby
-# app/controllers/demo_controller.rb
-class DemoController < ApplicationController
-  def dropdown
-    @keynote_speakers = [
-      'David Heinemeier Hannson',
-      'Eileen M. Uchitelle',
-      'Aaron Patterson',
-      'Bryan Cantrill'
-    ]
-  end
-end
-```
+I like to set up my terminal with three panes, one for my commands, one to run rails server, and one to run the webpack dev server, which enables hot reloading.
+
+We can quickly view our newly generated dropdown page to see what we've got.
 ##### Adding a view
-We want to view the data from our controller in a drop down view. I've put together some html with the help of [Tailwind UI](https://tailwindui.com/components), a premium html component library by the folks who made Tailwind css. We can add this to our `app/views/demo/dropdown.html.erb`. This code can be found with the repository accompanying this talk.
+Let's open our dropdown.html.erb view in the view/demo directory. I'm going to paste some html for our dropdown that I've put together with the help of Tailwind UI, which is a premium html component library by the folks who made tailwind css.
 ```erb
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
@@ -181,26 +180,35 @@ We want to view the data from our controller in a drop down view. I've put toget
   </div>
 </div>
 ```
+I have this code up in a repository github.com/jesse-spevack/stimulating_events
 
-## Load the application
+##### Add some data
+Now lets open the demo controller we just generated in the app controllers directory.
 
-##### Start Rails Server
-```bash
-rails server
+We are going to be building a dropdown menu where a user can choose a Railsconf keynote speaker. We'll add some data to our dropdown method in our controller. Typically in a real application this might be accomplished via database query or some other service request.
+```ruby
+# app/controllers/demo_controller.rb
+class DemoController < ApplicationController
+  def dropdown
+    @keynote_speakers = [
+      'David Heinemeier Hannson',
+      'Eileen M. Uchitelle',
+      'Aaron Patterson',
+      'Bryan Cantrill'
+    ]
+  end
+end
 ```
-##### Start webpack dev server
-This will enable hot reloads
-```bash
-bin/webpack-dev-server
-```
+
+And we can view this page now by opening our browser.
 ##### Visit the app in your browser
 ```
 localhost:3000/demo/dropdown
 ```
 ## Stimulus
-We'll start by copying the `hello_controller.js` to get the Stimulus boilerplate for our dropdown.
+Now lets use Stimulus to get this drop down to work. We'll start by copying the `hello_controller.js` to get the Stimulus boilerplate for our dropdown. We'll call our new stimulus controller dropdown_controller.
 
-A controller is the basic organizational unit of a Stimulus application. Controllers are instances of Javascript classes that we define. What I like about this is that we are getting some mandtory organizational structure for the javascript in our Rails application.
+A controller is the basic organizational unit of a Stimulus application. Controllers are instances of Javascript classes that we define. What I like about this is that we are getting some mandatory organizational structure for the javascript in our Rails application.
 ```bash
 cp app/javascript/controllers/hello_controller.js app/javascript/controllers/dropdown_controller.js
 ```
@@ -616,7 +624,7 @@ connect() {
 And now our select function becomes a little cleaner. Instead of messing with the list item text, we'll just set the `isSelected` state to be true.
 ```javascript
 select() {
-  this.selectedValue = true
+  this.isSelectedValue = true
 }
 ```
 
@@ -626,8 +634,6 @@ isSelectedValueChanged() {
   console.log("isSelected value changed to: ", this.isSelectedValue)
 }
 ```
-
-And we can remove the console.lgo from the `connect` to avoid confusion.
 
 When a list item is selected, we want to show the check mark, so we'll remove the hidden class.
 ```javascript
@@ -682,7 +688,7 @@ At this point our list items more or less govern themselves. They are much more 
 
 Now all that is left to do is clean up our drop down controller.
 
-First we need to remove the functions we no longer need. `connect`, `selectItem`, `setCheck`, `hideCheck`, `highlightListItem` and `unhighlightListItem`. These are all either no longer needed or handled by our list item controller.
+First we need to remove the functions we no longer need. `selectItem`, `setCheck`, `hideCheck`, `highlightListItem` and `unhighlightListItem`. These are all either no longer needed or handled by our list item controller.
 
 Now we'll want to add a new function to set the selected value. We can add a new data action to our `div` that will listen for any `listItemSelected` event.
 ```html
@@ -697,6 +703,13 @@ setSelected(event) {
   if (event.detail.value) {
     this.speakerTarget.textContent = event.detail.value
   }
+}
+```
+
+And then in the `connect` function we'll want to make sure we are still toggling the list off when the page loads.
+```javascript
+connect() {
+  this.toggleList()
 }
 ```
 
