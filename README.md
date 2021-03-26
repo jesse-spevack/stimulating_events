@@ -121,7 +121,7 @@ bin/webpack-dev-server
 ## Getting Started
 We are starting with a brand new rails application that I've added [Tailwind css](https://tailwindcss.com/docs) to. We'd like to use [Stimulus](https://stimulus.hotwire.dev/reference/controllers) to add a really nice professional, modern sheen to a simple dropdown menu.
 
-Our goal here is to first show how easy it is to use Stimulus to add modern looking interactions to our html in Rails. We'll introduce the core concepts of the framework, the controller, lifecycle callbacks, actions, targets, values, and css classes. After we get our dropdown working, we'll refactor to use some more advanced javascript to better encapsulate the responsibilities of our code.
+Our goal here is to show how easy it is to use Stimulus to add modern interactions to our html in Rails. We'll introduce the core concepts of the framework, the controller, lifecycle callbacks, actions, targets, values, and css classes. After we get our dropdown working, we'll refactor to use some more advanced javascript to better encapsulate the responsibilities of our code.
 
 The first thing we are going to do is generate a new demo controller with a dropdown method.
 ##### Generate a new controller
@@ -228,13 +228,13 @@ connect() {
 }
 ```
 
-Open developer tools and click on teh console in your web browser. When you first load the dropdown page, you should see the `Hello, Stimulus!` message.
+Open developer tools and click on teh console in your web browser. When you first load the dropdown page, you should see the message.
 
 At this point our controller does not do much and our dropdown is in a frozen state. It does not yet let users pick items. We can add a modern feel to this by styling the dropdown. We'll want the item that a user is mousing over to be highlighted. We'll also want the text of our button to change when the user selects and item. Finally, clicking the button should open or close the list of selectable items.
 
-To achieve this, we have some Tailwind css classes that define styles we'd like to apply to elements on our page using the class attribute. Stimulus lets us refer to CSS classes by logical naming using a combination of data attributes and controller properties. We type `data-<the controller name in kebab case>-class="<the css class to apply>"`.
+To achieve this, we have some Tailwind css classes that define styles we'd like to apply to elements on our page using the class attribute. Stimulus lets us refer to CSS classes by logical naming using a combination of data attributes and controller properties. We type `data-<the controller name>-class="<the css class to apply>"`.
 
-This makes a Stimulus controller re-useable as teh styles we apply can be dynamically passed in to our controller on a page by page basis. In this case we want ot add some white, pink, and bold styles. But we can imagine using different styles on another dropdown in the same application.
+This makes a Stimulus controller re-useable as the styles we apply can be dynamically passed in to our controller on a page by page basis. In this case we want to add some white, pink, and bold styles. But we can imagine using different styles on another dropdown in the same application.
 ```html
 <div
   data-controller="dropdown"
@@ -259,22 +259,26 @@ static classes = [
 ]
 ```
 
-Now we are ready to use a Stimulus action to define some behavior we'd like to see on our page. An action is a connection between a controller method, an element on the page, and a DOM event listener. We'd like change the style of the list items as the user's cursor hovers over them. So in this case the controller method will be `highlightListItem` and then we can define the action by adding the DOM event listener, `mouseenter` followed by an `->` symbol pointing to the controller, which in this case is `dropdown` and then a `#` followed by the name of the function to call. 
+Now we are ready to use a Stimulus action to define some behavior we'd like to see on our page. An action is a connection between a controller method, an element on the page, and a DOM event listener. We'd like change the style of the list items as the user's cursor hovers over them. So in this case the controller method will be specifying that the `mouseenter` dom event, followed by an `->` should call the `highlightListItem` funtion in the `dropdown`. I like this syntax a lot, it feels very similar to defining routes on rails to me.
 
 So adding
 ```html
 <li data-action="mouseenter->dropdown#highlightListItem">...</li>
 ```
-Tells the Stimulus controller that when the user's mouse enters this list item element, we want to send the event to the `highlightListItem` function in the dropdown controller.
 
-We have to define our `highlightListItem` function, so we can add some console logging to make sure we've got it right. Every action sends the triggering event to the function in our specified Stimulus controller. This event object includes a `target`, which is the target that dispatched the event. In this case the list item. So let's console log the inner text of the first child element of the list item. This should print out the name of the speaker mouse'ed over in the console. 
+We have to define our `highlightListItem` function, so we can add some console logging to make sure we've got it right. Every action sends the triggering event to the function in our specified Stimulus controller. This event object includes a `target`, which is the target that dispatched the event. In this case the list item. So let's console log the inner text of the first child element of the list item. This should print out the name of the speaker mouse'ed over in the console.
+
 ```javascript
 // app/javascript/controllers/dropdown_controller.js
 highlightListItem(event) {
   console.log("Mouse enter: ", event.target.innerText)
 }
 ```
-Since we see this message as we cursor over our list of speakers, lets now use javascript to apply our desired style. We want the list item's background to turn pink, the font color to turn white, and the text to turn bold. We can add:
+Since we see this message as we cursor over our list of speakers, lets now use javascript to apply our desired style. 
+
+First, We want the list item's background to turn pink. So lets start by adding this.backgroundPinkClass, which points to the class we defined in our static classes array, to the event target, the element that dispatched the mouse enter event, which is the list item. 
+
+This looks like it's working, so now let's od the same thing for font color, which we'll want to turn white, and the same thing for the text which we'll want to turn bold. The text that we want to turn white and bold is actually in a span nested within the list item. So we'll call first element child on the list item to get the span we are after.
 ```javascript
 // app/javascript/controllers/dropdown_controller.js
 highlightListItem(event) {
@@ -286,7 +290,7 @@ highlightListItem(event) {
 }
 ```
 
-Now as we move our mosue over our list, each item will turn pink. Almost there. But we also want to unhighlight the list item when our mouse leaves that particular list item. To do so, we need to define another action on our list item.
+Now as we move our mosue over our list, each list item will get a pink background and the inner span text will turn white and bold. Almost there. But we also want to unhighlight the list item when our mouse leaves that particular list item. To do so, we need to define another action on our list item.
 ```html
 <li data-action="mouseleave->dropdown#unhighlightListItem mouseenter->dropdown#highlightListItem">
   ...
@@ -323,7 +327,7 @@ selectItem(event) {
 }
 ```
 
-Our console shows that we are logging the correct selected list item. Now we will want to do two things. First, we'll want to hide the list since the selection has been made. Second, we'll want to add the user's selection to the inner text of the button, so they see that their selection is made.
+Our console shows that we are logging the correct selected list item. Now we will want to do two things. First, need to hide the list since the selection has been made. Second, we'll want to add the user's selection to the inner text of the button, so they see that their selection is made.
 
 To do this we need an easy way to get to the text inside our button. For that, Stimulus gives us the concept of targets, which allow us to reference important elements by name in our controller.
 
@@ -350,6 +354,8 @@ selectItem(event) {
 
 Now when we click on a list item, the text of the button will update to the text of the list item that was clicked.
 
+I'm just going to clean up this function a bit.
+
 The second thing we wanted to do was hide the drop down list after a selection gets made. To do so we'll add another target in our html to help us more easily reference elements from our html in our controller. Let's add another `data-dropdown-target` with the value `list` to our unordered list tag.
 ```html
 <ul data-dropdown-target="list">
@@ -373,7 +379,7 @@ selectItem(event) {
 }
 ```
 
-Now we can select away our list, but there is no way to get it back. We cna fix this by adding a click action to our button so that when the user clicks the button the list will reappear. Stimulus gives certain special elements, like buttons, their own default event short hands. So because this is a click event on a button element, we do not need to specify `click` we only need the `data-action` attribute to include the controller name and the function to call.
+Now we can select away our list, but there is no way to get it back. We can fix this by adding a click action to our button so that when the user clicks the button the list will reappear. Stimulus gives certain special elements, like buttons, their own default event short hands. So because this is a click event on a button element, we do not need to specify `click` we only need the `data-action` attribute to include the controller name and the function to call. So in this case rather than writing click arrow dropdown # toggleList we can just write dropdown # toggleList and the click is inferred because this is a button element.
 ```html
 <button data-action="dropdown#toggleList">
   ...
@@ -401,7 +407,7 @@ connect() {
 }
 ```
 
-At this point our list mostly works. It would be great to get those check marks to show up nicely when we highlight. To do this we are going to first define a new function called `hideChecks` that will iterate over our list items and uncheck any that do not have our selected value.
+At this point our list mostly works. It would be great to get those check marks to show up nicely when we highlight. To do this we are going to define a new function called `hideChecks` that will iterate over our list items and uncheck any that do not have our selected value.
 
 We will first add a new `data-dropdown-target` target called `check` that will reference the span containing our check svg icon.
 ```html
@@ -419,7 +425,7 @@ static targets = [
 ]
 ```
 
-Now we can implement our `hideChecks` function. In the past we've used singular targets, but our page actually has multiple checks, one per list item. So we can use the plural targets suffix to grab an array of our check targets.
+Now we can implement our `hideChecks` function. In the past we've used singular targets, but our page actually has multiple checks, one per list item. So we can use the plural targets suffix to grab an array of our check targets. We'll loop over each of them and apply our hidden class. Let's make sure we are looping correctly by console logging the check element.
 ```javascript
 hideChecks() {
   for (const check of this.checkTargets) {
@@ -435,6 +441,10 @@ connect() {
   this.hideChecks()
 }
 ```
+
+And since that shows up the way we want we can actually now hide the checks as we iterate  instead of logging them.
+
+But we also have to now show the checks, or unhide them when we click on an item. So we'll update our select item to hide all our checks, and then unhide the check we care about. We have to loop over our checks and match its sibling's inner text with the selected inner text. When the inner text of the span matches the selected text we'll apply the style. Trim can be really helpful in getting rid of unexpected white space.
 
 Now when the user selects an item and re-opens the dropdown we want the selected item to have a visible check icon.
 ```javascript
@@ -486,11 +496,11 @@ unhighlightListItem(event) {
 
 At this point we have some classes that toggle on and off. We could imagine adding a post method when we select an item that stores the selection in our database, but that is beyond the scope of this talk.
 
-Instead, lets look at our code. Does it bring us joy? It's kind of confusing if I'm being honest. There are a lot of things to keep track of. THis is a sign that maybe our dropdown controller is not well encapsulated.
+Instead, lets look at our code. Does it bring us joy? It's kind of confusing if I'm being honest. There are a lot of things to keep track of. We loop over checks in a few places. We might be able to DRY the code out a bit, but I think this is a sign that maybe our dropdown controller is not well encapsulated.
 
 ## Refactor
 
-Let's break our dropdown controller into two chunks. We'll keep the logic for opening and closing our list and setting the selected text in the dropdown controller. If we were posting the selected data to one of our Rails controllers, we might do that here as well.
+Let's break our dropdown controller into two chunks. We'll keep the logic for opening and closing our list and setting the selected text in the dropdown controller. If we were posting the selected data to one of our Rails controllers, we might do that here as well, or potentially in a third controller altogether.
 
 We'll also add a new `list_item_controller` and empower each list item to manage it's own highlight styling.
 
@@ -499,7 +509,7 @@ First we'll make a new controller with the necessary Stimulus boilerplate.
 cp app/javascript/controllers/hello_controller.js app/javascript/controllers/list_item_controller.js
 ```
 
-Now around each list item we'll add a `div` on which to instantiate our new controller. That way the list item controller will have a single list item in its scope.
+Now around each list item we'll add a `div` on which to instantiate our new controller. That way the list item controller will have a single list item in its scope. We'll type data-controller = list item.
 ```html
 <div data-controller="list-item">
   <li></li>
@@ -513,7 +523,7 @@ connect() {
 }
 ```
 
-Now let's add some targets in our new list item controller so that it is easy to reference the important elements in our list item, the inner text with the name of the speaker, the check, and then the entire list item itself.
+Now let's add some targets in our new list item controller so that it is easy to reference the important elements in our list item. First the entire list item, which we'll call item. Next we need the check, and finally, let's also add a data list item target equals text to make it easy to find the name of the speaker.
 ```erb
 <li data-list-item-target="item" ...>
   <span data-list-item="text" ...>
@@ -548,7 +558,7 @@ Now lets move the `data-dropdown` class attributes to our list item. We will add
 </div>
 ```
 
-And we also need to add these classes to the `static classes` array:
+And we also need to add these classes to the `static classes` array. We can delete the unneeded css classes from our dropdown controller. I think all we'll need is the hidden class to toggle the dropdown list.
 ```javascript
 static classes = [
   "textWhite",
@@ -559,7 +569,7 @@ static classes = [
 ]
 ```
 
-And we also have to re-write our data actions defined on our list items.
+And we also have to re-write our data actions defined on our list items We can shorten this to a select, highlight and unhighlight method. The list item is redundant because of our new controller.
 ```html
 <li data-action="click->list-item#select mouseenter->list-item#highlight mouseleave->list-item#unhighlight">
 </li>
@@ -581,6 +591,13 @@ unhighlight(event) {
 ```
 
 Now let's move our highlighting functionality over. Because we defined the elements we care about as targets, we can reference them more directly instead of needing to get at them by way of first or last element child.
+
+First will add a pink background to our list item.
+
+Next we'll add the white bold font to our span text.
+
+And finally we'll apply the same white color to our check.
+
 ```javascript
 highlight(event) {
   this.itemTarget.classList.add(this.backgroundPinkClass)
@@ -614,7 +631,7 @@ static values = {
 }
 ```
 
-Now when we connect, we can log this value.
+Now when we connect, we can log this value. And our log shows the value is false, which is what we put in the html data attribute
 ```javascript
 connect() {
   console.log("isSelected: ", this.isSelectedValue)
@@ -665,13 +682,15 @@ In our html we'll add data actions to listen for this new custom event. First on
 </div>
 ```
 
-And then we can define the deselect function to with a console log to make sure things are working.
+And then we can define the deselect function to with a console log to make sure things are working. We will log the value of the selected item that dispatched the event and the value of the item that just heard the event. We'll also get rid of the event getting passed into select, because three lines later we define a new event and that will cause us problems.
+
 ```javascript
 deselect(event) {
   console.log("The selected item's value is: ", event.detail.value)
   console.log("This item's value is: ", this.textTarget.innerText.trim())
 }
 ```
+So that appears to be working.
 
 When these two values are the same, we are dealing with the list item that published the `listItemSelected` event. So we can just ignore it. But on the other sibling list items, we need to set the `isSelected` state to `false`.
 ```javascript
@@ -684,13 +703,13 @@ deselect(event) {
 
 This will trigger the `isSelectedValueChanged` function, which will uncheck our list item appropriately.
 
-At this point our list items more or less govern themselves. They are much more encapsulated than in our initial implementation.
+At this point our list items are more or less autonomous. They are much more encapsulated than in our initial implementation.
 
 Now all that is left to do is clean up our drop down controller.
 
 First we need to remove the functions we no longer need. `selectItem`, `setCheck`, `hideCheck`, `highlightListItem` and `unhighlightListItem`. These are all either no longer needed or handled by our list item controller.
 
-Now we'll want to add a new function to set the selected value. We can add a new data action to our `div` that will listen for any `listItemSelected` event.
+Now we'll want to add a new function to set the selected value. We can add a new data action to our `button` that will listen for any `listItemSelected` event and then invoke the a new set selected function in our dropdown controller.
 ```html
 <div ... data-action="listItemSelected@window->dropdown#setSelected">
   ...
@@ -713,4 +732,6 @@ connect() {
 }
 ```
 
-Thanks for sticking with me through the highs and lows of this. I hope you are walking away with an increased interest in Stimulus and maybe a few new tools in your stimulus repertoire. Thank you!
+Thanks for sticking with me through this. We covered a lot. We looked at how to create a controller, use actions, targets, values and css classes. We also used custom events to communicate between our controllers and better encapsulate our code. I hope you are walking away with an increased interest in Stimulus and maybe a few new tools in your stimulus repertoire. I'll be answering any questions in Discord.
+
+Thank you again for joining me! Enjoy the rest of Railsconf.
