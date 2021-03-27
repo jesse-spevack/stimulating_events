@@ -1,127 +1,8 @@
 # Stimulating Events
 This repository contains code and documentation for Jesse Spevack's Railsconf 2021 talk "Stimulating Events".
 
-## Setup
-This section includes step by step instructions on how to set up a new Rails app with Stimulus and Tailwind css. Tailwind css setup can be found in more detail [here](https://web-crunch.com/posts/how-to-install-tailwind-css-2-using-ruby-on-rails).
-
-##### Create a new rails app
-```bash
-rails new stimulating_events --webpack=stimulus -T --database=
-```
-##### Change directories to your project's root 
-```bash
-cd stimulating events
-```
-##### Install tailwind css
-```bash
-yarn add tailwindcss@npm:@tailwindcss/postcss7-compat postcss@^7 autoprefixer@^9
-```
-##### Create a tailwind css config file
-```bash
-npx tailwindcss init
-```
-##### Make a stylesheets directory 
-```bash
-mkdir app/javascript/stylesheets
-```
-##### Make an application.scss
-```bash
-touch app/javascript/stylesheets/application.scss
-```
-
-##### Include the following in `application.scss` from the previous step
-```javascript
-/* app/javascript/stylesheets/application.scss */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-
-/* Add any custom CSS here */
-@import "tailwindcss/utilities";
-```
-
-##### Import the stylesheet
-Open `app/javascript/packs/application.js` and add:
-```javascript
-import "stylesheets/application"
-```
-
-##### Add Tailwind CSS to the postcss.config.js file.
-```javascript
-/* ./postcss.config.js */
-module.exports = {
-  plugins: [
-    require('tailwindcss')("./app/javascript/stylesheets/tailwind.config.js"),
-    require('postcss-import'),
-    require('postcss-flexbugs-fixes'),
-    require('postcss-preset-env')({
-      autoprefixer: {
-        flexbox: 'no-2009'
-      },
-      stage: 3
-    })
-  ]
-}
-```
-
-##### Add the stylesheet to `application.html.erb`
-Use the `stylesheet_pack_tag`
-```erb
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>StimulatingEvents</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
-  </head>
-
-  <body>
-    <%= yield %>
-  </body>
-</html>
-```
-##### Configure the purge feature of Tailwind CSS
-This will remove unused css and improve performance.
-```javascript
-/* app/javascript/stylesheets/tailwind.config.js */
-module.exports = {
-  purge: [
-    ".app/**/*.html.erb",
-    ".app/helpers/**/*.rb",
-    ".app/javascript/**/*.js",
-  ],
-  darkMode: false, // or 'media' or 'class'
-  theme: {
-    extend: {},
-  },
-  variants: {
-    extend: {},
-  },
-  plugins: [],
-}
-```
-Tailwind should be setup on your new rails application.
-
-## Load the application
-
-##### Start Rails Server
-```bash
-rails server
-```
-##### Start webpack dev server
-This will enable hot reloads
-```bash
-bin/webpack-dev-server
-```
-
 ## Getting Started
 We are starting with a brand new rails application that I've added [Tailwind css](https://tailwindcss.com/docs) to. We'd like to use [Stimulus](https://stimulus.hotwire.dev/reference/controllers) to add a really nice professional, modern sheen to a simple dropdown menu.
-
-Our goal here is to show how easy it is to use Stimulus to add modern interactions to our html in Rails. We'll introduce the core concepts of the framework, the controller, lifecycle callbacks, actions, targets, values, and css classes. After we get our dropdown working, we'll refactor to use some more advanced javascript to better encapsulate the responsibilities of our code.
 
 The first thing we are going to do is generate a new demo controller with a dropdown method.
 ##### Generate a new controller
@@ -129,9 +10,6 @@ The first thing we are going to do is generate a new demo controller with a drop
 rails generate controller Demo dropdown
 ```
 
-I like to set up my terminal with three panes, one for my commands, one to run rails server, and one to run the webpack dev server, which enables hot reloading.
-
-We can quickly view our newly generated dropdown page to see what we've got.
 ##### Adding a view
 Let's open our dropdown.html.erb view in the view/demo directory. I'm going to paste some html for our dropdown that I've put together with the help of Tailwind UI, which is a premium html component library by the folks who made tailwind css.
 ```erb
@@ -180,8 +58,6 @@ Let's open our dropdown.html.erb view in the view/demo directory. I'm going to p
   </div>
 </div>
 ```
-I have this code up in a repository github.com/jesse-spevack/stimulating_events
-
 ##### Add some data
 Now lets open the demo controller we just generated in the app controllers directory.
 
@@ -208,7 +84,6 @@ localhost:3000/demo/dropdown
 ## Stimulus
 Now lets use Stimulus to get this drop down to work. We'll start by copying the `hello_controller.js` to get the Stimulus boilerplate for our dropdown. We'll call our new stimulus controller dropdown_controller.
 
-A controller is the basic organizational unit of a Stimulus application. Controllers are instances of Javascript classes that we define. What I like about this is that we are getting some mandatory organizational structure for the javascript in our Rails application.
 ```bash
 cp app/javascript/controllers/hello_controller.js app/javascript/controllers/dropdown_controller.js
 ```
@@ -227,10 +102,6 @@ connect() {
   console.log("Hello, Stimulus!")
 }
 ```
-
-Open developer tools and click on teh console in your web browser. When you first load the dropdown page, you should see the message.
-
-At this point our controller does not do much and our dropdown is in a frozen state. It does not yet let users pick items. We can add a modern feel to this by styling the dropdown. We'll want the item that a user is mousing over to be highlighted. We'll also want the text of our button to change when the user selects and item. Finally, clicking the button should open or close the list of selectable items.
 
 To achieve this, we have some Tailwind css classes that define styles we'd like to apply to elements on our page using the class attribute. Stimulus lets us refer to CSS classes by logical naming using a combination of data attributes and controller properties. We type `data-<the controller name>-class="<the css class to apply>"`.
 
@@ -258,8 +129,6 @@ static classes = [
   "hidden"
 ]
 ```
-
-Now we are ready to use a Stimulus action to define some behavior we'd like to see on our page. An action is a connection between a controller method, an element on the page, and a DOM event listener. We'd like change the style of the list items as the user's cursor hovers over them. So in this case the controller method will be specifying that the `mouseenter` dom event, followed by an `->` should call the `highlightListItem` funtion in the `dropdown`. I like this syntax a lot, it feels very similar to defining routes on rails to me.
 
 So adding
 ```html
@@ -441,10 +310,6 @@ connect() {
   this.hideChecks()
 }
 ```
-
-And since that shows up the way we want we can actually now hide the checks as we iterate  instead of logging them.
-
-But we also have to now show the checks, or unhide them when we click on an item. So we'll update our select item to hide all our checks, and then unhide the check we care about. We have to loop over our checks and match its sibling's inner text with the selected inner text. When the inner text of the span matches the selected text we'll apply the style. Trim can be really helpful in getting rid of unexpected white space.
 
 Now when the user selects an item and re-opens the dropdown we want the selected item to have a visible check icon.
 ```javascript
